@@ -1,0 +1,5 @@
+# C builds
+*.o
+*.out
+*.exe
+.DS_Store
