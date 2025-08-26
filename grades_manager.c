@@ -1,10 +1,3 @@
-
----
-
-# Repo 2: `grades-manager-c`
-
-## `grades_manager.c`
-```c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,16 +21,14 @@ void initList(StudentList *list) {
     list->size = 0;
     list->capacity = 4;
     list->arr = (Student*)malloc(sizeof(Student) * list->capacity);
+    if (!list->arr) { fprintf(stderr, "malloc failed\n"); exit(1); }
 }
 
 void ensureCapacity(StudentList *list) {
     if (list->size >= list->capacity) {
         list->capacity *= 2;
         Student *tmp = (Student*)realloc(list->arr, sizeof(Student) * list->capacity);
-        if (!tmp) {
-            printf("Memory allocation failed.\n");
-            exit(1);
-        }
+        if (!tmp) { fprintf(stderr, "realloc failed\n"); exit(1); }
         list->arr = tmp;
     }
 }
@@ -45,7 +36,7 @@ void ensureCapacity(StudentList *list) {
 void addStudent(StudentList *list, const char *name) {
     ensureCapacity(list);
     strncpy(list->arr[list->size].name, name, MAX_NAME - 1);
-    list->arr[list->size].name[MAX_NAME-1] = '\0';
+    list->arr[list->size].name[MAX_NAME - 1] = '\0';
     list->arr[list->size].count = 0;
     list->size++;
 }
@@ -58,21 +49,18 @@ int findStudentIndex(StudentList *list, const char *name) {
 }
 
 void addGrade(Student *s, int grade) {
-    if (s->count < MAX_GRADES) {
-        s->grades[s->count++] = grade;
-    } else {
-        printf("Max grades reached.\n");
-    }
+    if (s->count < MAX_GRADES) s->grades[s->count++] = grade;
+    else printf("Max grades reached.\n");
 }
 
-double avgStudent(Student *s) {
+double avgStudent(const Student *s) {
     if (s->count == 0) return 0.0;
     int sum = 0;
     for (int i = 0; i < s->count; i++) sum += s->grades[i];
     return (double)sum / s->count;
 }
 
-double avgClass(StudentList *list) {
+double avgClass(const StudentList *list) {
     int total = 0, n = 0;
     for (int i = 0; i < list->size; i++) {
         for (int j = 0; j < list->arr[i].count; j++) {
@@ -83,13 +71,13 @@ double avgClass(StudentList *list) {
     return n ? (double)total / n : 0.0;
 }
 
-void printStudent(Student *s) {
+void printStudent(const Student *s) {
     printf("%s: ", s->name);
     for (int i = 0; i < s->count; i++) printf("%d ", s->grades[i]);
     printf("(avg: %.2f)\n", avgStudent(s));
 }
 
-void listStudents(StudentList *list) {
+void listStudents(const StudentList *list) {
     if (list->size == 0) { printf("No students.\n"); return; }
     for (int i = 0; i < list->size; i++) printStudent(&list->arr[i]);
 }
@@ -115,29 +103,27 @@ int main() {
         switch (choice) {
             case 1:
                 printf("Student name: ");
-                scanf(" %49[^\n]", name);
+                if (scanf(" %49[^\n]", name) != 1) { printf("Invalid.\n"); break; }
                 addStudent(&list, name);
                 break;
-            case 2:
+            case 2: {
                 printf("Student name: ");
-                scanf(" %49[^\n]", name);
-                {
-                    int idx = findStudentIndex(&list, name);
-                    if (idx == -1) { printf("Not found.\n"); break; }
-                    printf("Grade (0-100): ");
-                    if (scanf("%d", &grade) != 1) { printf("Invalid.\n"); break; }
-                    addGrade(&list.arr[idx], grade);
-                }
+                if (scanf(" %49[^\n]", name) != 1) { printf("Invalid.\n"); break; }
+                int idx = findStudentIndex(&list, name);
+                if (idx == -1) { printf("Not found.\n"); break; }
+                printf("Grade (0-100): ");
+                if (scanf("%d", &grade) != 1) { printf("Invalid.\n"); break; }
+                addGrade(&list.arr[idx], grade);
                 break;
-            case 3:
+            }
+            case 3: {
                 printf("Student name: ");
-                scanf(" %49[^\n]", name);
-                {
-                    int idx = findStudentIndex(&list, name);
-                    if (idx == -1) printf("Not found.\n");
-                    else printStudent(&list.arr[idx]);
-                }
+                if (scanf(" %49[^\n]", name) != 1) { printf("Invalid.\n"); break; }
+                int idx = findStudentIndex(&list, name);
+                if (idx == -1) printf("Not found.\n");
+                else printStudent(&list.arr[idx]);
                 break;
+            }
             case 4:
                 listStudents(&list);
                 break;
